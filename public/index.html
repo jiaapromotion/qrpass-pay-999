@@ -1,0 +1,55 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QRPass - Pay ₹999</title>
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    function payNow() {
+      const name = document.getElementById("name").value;
+      const phone = document.getElementById("phone").value;
+      const email = document.getElementById("email").value;
+
+      if (!name || !phone || !email) {
+        alert("Please fill in all details");
+        return;
+      }
+
+      fetch("/create-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, phone, email, amount: 99900 })
+      })
+      .then(res => res.json())
+      .then(order => {
+        const options = {
+          key: "RAZORPAY_KEY_ID", // Replace with env in Render
+          amount: order.amount,
+          currency: "INR",
+          name: "QRPass",
+          description: "QRPass Plan ₹999",
+          order_id: order.id,
+          handler: function (response) {
+            window.location.href = `/success?payment_id=${response.razorpay_payment_id}&name=${encodeURIComponent(name)}&phone=${encodeURIComponent(phone)}&email=${encodeURIComponent(email)}&amount=999`;
+          },
+          prefill: {
+            name: name,
+            email: email,
+            contact: phone
+          }
+        };
+        const rzp = new Razorpay(options);
+        rzp.open();
+      });
+    }
+  </script>
+</head>
+<body style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+  <h1>Pay ₹999 for QRPass</h1>
+  <input type="text" id="name" placeholder="Your Name" /><br/><br/>
+  <input type="tel" id="phone" placeholder="Your Phone" /><br/><br/>
+  <input type="email" id="email" placeholder="Your Email" /><br/><br/>
+  <button onclick="payNow()" style="padding: 10px 20px; font-size: 16px;">Pay ₹999</button>
+</body>
+</html>
